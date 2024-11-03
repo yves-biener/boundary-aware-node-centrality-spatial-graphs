@@ -2,6 +2,10 @@
 
 Boundary-aware node centrality for spatial graphs
 
+- [ ] Tried https://squidpy.readthedocs.io/en/stable/notebooks/examples/graph/compute_centrality_scores.html
+  - [x] merfish
+  - [ ] mibitof
+
 ## TODO
 
 - [ ] Documentation

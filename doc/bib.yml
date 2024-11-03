@@ -1,0 +1,20 @@
+contract:
+  type: article
+  title: A New Approach to the Minimum Cut Problem
+  author:
+    - David R. Krager
+    - Clifford Stein
+  date: 1996-12-23
+  url: http://www.columbia.edu/~cs2035/courses/ieor6614.S09/Contraction.pdf
+
+aquila:
+  type: paper
+  title: "Aquila: a spatial omics database and anlysis platform"
+  author:
+    - Yimin Zheng
+    - Yitian Chen
+    - Xianting Ding
+    - Koon Ho Wong
+    - Edwin Cheung
+  date: 2022-10-16
+  url: https://academic.oup.com/nar/article/51/D1/D827/6761736
