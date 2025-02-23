@@ -1,37 +1,31 @@
+import numpy as np
 import squidpy as sq
 
-adata = sq.datasets.merfish()
+# merfish (non-grid dataset)
+adata = sq.datasets.mibitof()
 
 # connectivity matrix from spatial coordinates
-sq.gr.spatial_neighbors(adata)
+sq.gr.spatial_neighbors(adata, delaunay=True, coord_type="generic")
+print(adata)
 
-#print(adata.obs.keys())
+sq.pl.spatial_scatter(
+    adata,
+    shape=None,
+    connectivity_key="spatial_connectivities",
+    save='./mibitof/Spatial_scatter',
+)
 
-# calculate centrality scores
-sq.gr.centrality_scores(adata, "Cell_class")
-# visualize results
-sq.pl.centrality_scores(adata, "Cell_class", save='./merfish/Cell_class')
+# seems to be the exact same
+sq.pl.spatial_segment(
+    adata,
+    library_id=["point8"],
+    seg_cell_id="cell_id",
+    color="Cluster",
+    library_key="library_id",
+    title=["point8"],
+    save='./mibitof/Spacial_segment'
+)
 
-# --- DATASET: merfish ---
-# NOTE: all available keys
-# 'Cell_ID', 'Animal_ID', 'Animal_sex', 'Behavior', 'Bregma', 'Centroid_X', 'Centroid_Y', 'Cell_class', 'Neuron_cluster_ID', 'batch'
-#
-# NOTE: the following keys do not give results:
-# 'Bregma', 'Cell_ID'
-#
-# NOTE: the following keys give results (not sure how ~good~ they are):
-# - 'Cell_class'
-# - 'batch'
-# - 'Neuron_cluster_ID'
-
-# --- DATASET: mibitof ---
-# NOTE: all available keys
-# 'row_num', 'point', 'cell_id', 'X1', 'center_rowcoord', 'center_colcoord', 'cell_size', 'category', 'donor', 'Cluster', 'batch', 'library_id'
-#
-# NOTE: the following keys do not give results:
-# 'point', 'cell_id', 'cell_size', 'category', 'library_id'
-#
-# NOTE: the following keys give results (not sure how ~good~ they are):
-# - 'Cluster'
-# - 'batch'
-# - 'donor'
+# TODO: where is the 'edge'?
+# print(adata.obsp["connectivities"])
+# print(adata.obsp["distances"])

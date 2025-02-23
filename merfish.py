@@ -17,7 +17,6 @@ import matplotlib.patches as patches
 from matplotlib.collections import LineCollection
 
 import squidpy as sq
-import scipy.sparse as sp
 
 # merfish (non-grid dataset)
 adata = sq.datasets.merfish()
@@ -87,16 +86,31 @@ while not eql(endpoint, convex_hull[0]):
     convex_hull.append(hull_point)
 # gift wrapping
 
-nx_graph = nx.Graph(spatial_connectivities)
+nx_graph = nx.from_scipy_sparse_array(planar_spatial_distances)
+
+# BEGIN TESTING
+def draw(G, pos, measures, measure_name):
+    
+    nodes = nx.draw_networkx_nodes(G, pos, node_size=5, cmap=plt.cm.plasma, 
+                                   node_color=list(measures.values()),
+                                   nodelist=measures.keys())
+    nodes.set_norm(mcolors.SymLogNorm(linthresh=0.01, linscale=1, base=10))
+    # labels = nx.draw_networkx_labels(G, pos)
+    edges = nx.draw_networkx_edges(G, pos)
+
+    plt.title(measure_name)
+    plt.colorbar(nodes)
+    plt.axis('off')
+    plt.show()
+
+# draw(nx_graph, spatial, nx.closeness_centrality(nx_graph, distance='weight'), 'Closeness Centrality')
+# END TESTING
+
 # closeness
-closeness_nodes = nx.closeness_centrality(nx_graph)
+closeness_nodes = nx.closeness_centrality(nx_graph, distance='weight')
 c = np.fromiter(closeness_nodes.values(), dtype=float)
 closeness_max = max(closeness_nodes.values())
 closeness_min = min(closeness_nodes.values())
-closeness_mid = (closeness_min + closeness_max) / 2
-closeness_below_mid = (closeness_mid + closeness_min) / 2
-closeness_upper_mid = (closeness_mid + closeness_max) / 2
-cmap, norm = colors.from_levels_and_colors([closeness_min, closeness_below_mid, closeness_mid, closeness_upper_mid, closeness_max], ['c', 'b', 'g', 'r'])
 # closeness
 
 # pagerank
@@ -104,12 +118,12 @@ pagerank_nodes = nx.pagerank(nx_graph)
 # pagerank
 
 fig, ax = plt.subplots()
-ch = LineCollection([convex_hull], colors=['g'], linewidths=0.5)
-ax.add_collection(ch)
+# ch = LineCollection([convex_hull], colors=['g'], linewidths=0.5)
+# ax.add_collection(ch)
 for edge in edges:
     ax.add_collection(edge)
-sc = ax.scatter(x, y, s=0.2, c=c, cmap=cmap, norm=norm) # map closeness values as color mapping on the verticies
-ax.add_patch(patches.Rectangle((min_x, min_y), max_x - min_x, max_y - min_y, linewidth=0.2, edgecolor='r', facecolor="none"))
+sc = ax.scatter(x, y, s=1, c=c, cmap=plt.cm.plasma, vmin=closeness_min, vmax=closeness_max) # map closeness values as color mapping on the verticies
+# ax.add_patch(patches.Rectangle((min_x, min_y), max_x - min_x, max_y - min_y, linewidth=0.2, edgecolor='r', facecolor="none"))
 fig.colorbar(sc, ax=ax)
 fig.savefig('./figures/merfish/spatial_coordinates.svg', format='svg')
 
