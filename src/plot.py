@@ -78,8 +78,9 @@ class Graph:
         sc = ax.scatter(x, y, s=1, cmap=plt.cm.plasma, c=c) # map closeness values as color mapping on the verticies
         # TODO: draw bounding box?
         # ax.add_patch(patches.Rectangle((min_x, min_y), max_x - min_x, max_y - min_y, linewidth=0.2, edgecolor='r', facecolor="none"))
+        fig.title(name)
         fig.colorbar(sc, ax=ax)
-        fig.savefig('name', format='svg')
+        fig.savefig(path, format='svg')
 
     def show(G, pos, measures, name):
         nodes = nx.draw_networkx_nodes(G, pos, node_size=2, cmap=plt.cm.plasma, 
