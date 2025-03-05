@@ -68,13 +68,13 @@
   ),
   footer: [
    #set align(center)
-   #counter(page).display("1", both: false)
+   #context { counter(page).display("1", both: false) }
   ]
  )
  // diversions from default page layout
- set page(header: locate(loc => {
+ set page(header: context {
   // don't show header on first page
-  if counter(page).at(loc).first() > 1 {
+  if here().page() > 1 {
    align(
     right + horizon,
     title,
@@ -86,7 +86,7 @@
     image("fau.png", width: 30%),
    )
   }
- }))
+ })
  set text(lang: "en")
  set par(justify: true)
  set text(size: 10pt)

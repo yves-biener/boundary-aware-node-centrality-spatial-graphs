@@ -94,12 +94,17 @@ class Graph:
         plt.show()
 
 
-class Quantification:
-    def plot(pos, metric, metric_name, path):
-        quantification = []
+def normalize_dict(d):
+    max = np.max(list(d.values()))
+    return [(v / max) for k, v in d.items()]
 
-        hull = convex_hull(pos)
+
+class Quantification:
+    def data(pos, metric):
         keys = iter(metric.keys())
+        m = normalize_dict(metric)
+        quantification = []
+        hull = convex_hull(pos)
 
         for point in pos:
             min_distance = math.inf
@@ -108,16 +113,18 @@ class Quantification:
                 distance = Vector.vec_len(point, edge)
                 if distance < min_distance:
                     min_distance = distance
-            quantification.append([min_distance, metric[key]])
+            quantification.append([min_distance, m[key]])
 
         # sort by distance
         quantification.sort(key=lambda entry: entry[0])
-        quantification = np.array(quantification)
+        return np.array(quantification)
 
+
+    def plot(data, d_curve, C_curve, metric_name, path):
         fig, ax = plt.subplots()
         ax.set_title(metric_name)
         ax.set_xlabel('Distance to Bounding-Box')
         ax.set_ylabel('Centrality')
-        ax.scatter(quantification[:, 0], quantification[:, 1], color='b', s=0.2)
+        ax.scatter(data[:, 0], data[:, 1], color='b', s=0.2)
+        ax.plot(d_curve, C_curve, color='r', linewidth=1)
         fig.savefig(path, format='svg')
-

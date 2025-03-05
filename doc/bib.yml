@@ -8,7 +8,7 @@ contract:
   url: http://www.columbia.edu/~cs2035/courses/ieor6614.S09/Contraction.pdf
 
 aquila:
-  type: paper
+  type: article
   title: "Aquila: a spatial omics database and anlysis platform"
   author:
     - Yimin Zheng

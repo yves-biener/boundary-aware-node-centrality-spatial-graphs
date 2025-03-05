@@ -23,58 +23,46 @@
 
 = Motivation
 #lorem(80)
+// TODO: explain the following aspects:
+// - why measurements at the boundaries are usually wrong when compared to the real world
+// - improve by adjusting the computated values through the other existing ones
+// - working with non-grid datasets (i.e. mibitof and merfish) BIB: both could be cited too
 
-= Contraction algorithm (Krager's Algorithm)
-The following Monte-Carlo algorithm by David Karger describes a simple randomized approach to determine a minimum cut of a connected graph. The main idea for this approach is based on the contraction of edges in the graph to merge both verticies of an edge into a new merged verticy. The corresponding edges to the merged nodes will point to the merged node instead. This results in a multigraph (multiple different edges with the same start and end node). The notation $G\/(u,v)$ is used to denote the contraction of the edge $(u,v)$ in the (multi-)graph $G$.
+= Centrality measurements
 
-In the process of the algorithm the number of verticies is reduced until there are only two left, which describe a cut of the original graph. Both potentially merged nodes describe two subsets $S$ and $T$ of the cut-set $C = (S,T)$ with ${(u,v) in | u in S, v in T}$. @contract
+// TODO: what are centrality measurements and how are they calculated (take the we are also plann on improving on)
+// - what is the reason then for nodes at the border to become less (or more) potent
 
-```
-procedure contract(G = (V,E)):
- while |V| > 2
-   choose e = (u,v) ∈ E u.a.r
-   /* Contract operation */
-  G := G/(u,v)
- C := the only remaining cut in G
- return C
-```
+== Closeness centrality
 
-There is no guarantee that the determined cut by `contract(G)` is minimal. However it can be proved that `contract(G)` finds a minimal cut with probability of at least $2/n(n-1)$.
+== Pagerank centrality
+// TODO: Pagerank does not seem to be too effected by the boundary
 
-$ Pr[C "is minimal cut"] >= Pr[C = K] \
- = product_(i=2)^(n-2) (1- Pr[e_i in K | and_(1<=j<i) e_j in.not K]) \
- >= product_(i=1)^(n-2) (1- 2/(n-i+1)) \
- = product_(i=1)^(n-2) ((n-i-1)/(n-i+1)) \
- = (n-2)/n * (n-3)/(n-1) * (n-4)/(n-2) * ... * 3/5 * 2/4 * 1/3 \
- = 2/(n(n-1)) qed $ <contract-expected-prob>
+// TODO:
+// BIB: google paper for the pagerank algorithm?
 
-With @contract-expected-prob the expected number of repetitions until `contract(G)` finds a minimal cut in $G$ is at most $n(n-1)/2$ (_geometric distribution_).
+= Correction for boundary
 
-Simple implementations can implement the `contract(G)` algorithm in $O(n^2)$ such that with the repetitions to find a minimal cut the expected runtime in $O(n^4)$.
+// TODO: explain what we did step by step and how we try to improve the corresponding calculated centrality measurements
+// - Boundary box (gift wrapping algorithm)
+// - Centrality calculation
+// - graph creation with the relation for distance to bounding-box <-> centrality of each node
+// - function fitting as a (I)LP
+//   - slope, breaking point, constant (as variables)
+// - resulting correction to be applied to the centrality values of the corresponding nodes from the relationship
+// -> new centrality values
+// -> detection which nodes are effected by the boundary
 
-= Stoer-Wagner algorithm
-This deterministic algorithm finds the minimal cut by means of an iterative process. In each iteration phase a cut is determined from which the minimal is returned. The iterative process is started by an arbritary starting node $a$. In each Iteration a subset $A$ containing $a$ in the beginning is created to which the most tightly connected node to $A$ is added until $A = V$. Formally this can be written as:
+= Usecases
 
-$z in.not A | w(A,z) = max{w(A,y) | y in.not A}$ where $w(A,y)$ is the sum of the weights of all edges between $A$ and $y$.
-
-From the subset $A$ the cut of the phase is determined by using the last two remaining nodes of the phase. In the end of each iteration these two nodes $s$ and $t$ are merged. When merging the nodes all edges between $s$ and $t$ are removed and all remaining edges are replaced by new edges with the corresponding sum of their weights. This way the algorithm has $n - 1$ iterations.
-
-```
-procedure stoer_wagner(G = (V,E), s):
- min_cut = MAX
- while |V| > 1
-  /* minimal cut phase */
-  A := {s}
-  while A != V
-   add most tidly connected vertex to A -- this needs to be explained better
-  cut_of_phase := cut of the last merge -- this is also not very perceise
-  G := G/(A[-1],A[-2])
-  if min_cut > cut_of_phase
-   min_cut := cut_of_phase
- return min_cut
-```
-
-The cut determined by `stoer_wagner(G, s)` is minimal. A minimal cut $C$ separates the graph $G$ into a pair of distinct subsets $A$ and $B$. For the merging of the last two remaining nodes of each phase there are two possible outcomes. Both nodes belong to either $A$ or $B$ or alternatively each node is in either $A$ or $B$. In the first case there is no minimal cut and the replacement of the nodes does not change the minimal cut. On the other hand the second case the minimal cut is found and as the connecting edge, which leads to a minimal cut is removed, a more minimal cut cannot be found.
+// TODO: What can this approach be used for?
+// - Detect how much a metric may be effected by the boundary of a spatial graph
+// - Detect the nodes which are effected by the boundary (maybe even with a given threshhold)
 
 = Conclusion
-By embracing simplicity and harnessing the power of heuristics, randomized algorithms offer a compelling alternative to their deterministic counterparts, paving the way for more efficient and flexible solutions.
+
+// NOTE: this should serve as a report for the master thesis based on this work
+// - what can also be done on top of the existing work?
+//   - improvement of algorithms (i.e. runtime improvements - *very unlikely*)
+//   - improvement of metric algorithms to use (i.e. which are more or less effected by the boundary)
+//   - quantification of metrics (i.e. can a metric be used to make educated guesses about the corresponding cells, etc.)
