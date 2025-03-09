@@ -10,7 +10,7 @@
    columns: (1fr, 1fr),
    align(left)[
     #text(12pt, fill: luma(180))[
-     #datetime.today().display() Yves Biener -- Boundary-aware node centralities for spatial graphs
+     #datetime(year: 2025, month: 3, day: 10).display() Yves Biener -- Boundary-aware node centralities for spatial graphs
     ]
    ],
    align(right)[
@@ -62,7 +62,6 @@
   image("./figures/merfish/Spatial_scatter.png"),
   image("./figures/merfish/spatial_coordinates.svg")
 )
-// TODO: - merfish and mibitof images from squidpy
 
 // --------------------------------------------------------------------------------------------------------------------
 #pagebreak()
@@ -83,7 +82,14 @@
 #pagebreak()
 #heading(outlined: false)[Closeness Centrality]
 
-- A node is central if its close (shortest path distance) to all other nodes (apart from itself):
+#box(
+ fill: luma(240),
+ inset: 10pt,
+ radius: 4pt,
+)[
+  A node is important if its *close* (shortest path distance) *to all other nodes* (apart from itself).
+]
+
 - Normalized *Closeness Centrality*:
 
 $ C(u) = (n - 1) * (sum_(v in V without {u}) d(v,u))^(-1) = ("arithmetic-mean"_(v in V without {v}) d(v,u))^(-1) $
@@ -97,12 +103,22 @@ $ C(u) = (n - 1) * (sum_(v in V without {u}) d(v,u))^(-1) = ("arithmetic-mean"_(
 #pagebreak()
 #heading(outlined: false)[The Problem of the Boundaries]
 
-// TODO reformulate!
-However, when using node centrality measures to quantify node importance in such spatial graphs, they tend to prioritize nodes in the center of the graph and de-prioritize nodes that are close to the boundary of the tissue section. This is a problem, because the boundary is very often an arbitrary artifact of the tissue sample collection protocol (e.g, a small skin section was cut out of an arbitrary section of a larger skin area of interest) and should hence not affect node importance quantification.
+// However, when using node centrality measures to quantify node importance in such spatial graphs, they tend to prioritize nodes in the center of the graph and de-prioritize nodes that are close to the boundary of the tissue section. This is a problem, because the boundary is very often an arbitrary artifact of the tissue sample collection protocol (e.g, a small skin section was cut out of an arbitrary section of a larger skin area of interest) and should hence not affect node importance quantification.
+- Node centrality measures often prioritize nodes at the center of spatial graphs.
+- The tissue section on which the corresponding spatial graph is extracted from is by nature limited.
+- These measures de-prioritize nodes near the boundary of the tissue section.
+- Resulting centrality measures may not apply to the tissue because of side effects of the corresponding used algorithms beeing effected by the boundary of the spatial graph.
 
 // --------------------------------------------------------------------------------------------------------------------
 #pagebreak()
 = Relation between Boundary and Centrality
+
+/ Primary Goal: Determine if a node's centrality measure is effected by the boundary of the graph.
+  - How "much" effected?
+  - Compare effectiveness of different centrality measures.
+  - Create basis for meaningful measures.
+/ Secondary Goal: Correction of calculated centrality measures.
+  - Based on the relationship between the boundary and centrality create a model that tries to "correct" the determined centrality measures.
 
 // TODO boundary <-> centrality
 // - for closeness centrality measurement
@@ -117,7 +133,7 @@ However, when using node centrality measures to quantify node importance in such
     image("./figures/mibitof/spatial_graph.svg")
   ),
   figure(
-    caption: [Mibitof Closeness Function Fitting Result],
+    caption: [Mibitof Closeness Boundary Relationship],
     image("./figures/mibitof/quantification/closeness.svg"),
   ),
 )
@@ -128,11 +144,11 @@ However, when using node centrality measures to quantify node importance in such
 #grid(
   columns: (1fr, 1fr),
   figure(
-    caption: [Mibitof Closeness Function Fitting Result],
+    caption: [Merfish Spatial Graph],
     image("./figures/merfish/spatial_graph.svg", height: 80%),
   ),
   figure(
-    caption: [Mibitof Closeness Function Fitting Result],
+    caption: [Merfish Closeness Boundary Relationship],
     image("./figures/merfish/quantification/closeness.svg"),
   ),
 )
@@ -141,19 +157,18 @@ However, when using node centrality measures to quantify node importance in such
 #pagebreak()
 = Function Fitting
 
-- Find a function which describes (an "optimal") relationship between the centrality measure and the distance to the bounding box #footnote(link("https://en.wikipedia.org/wiki/Gift_wrapping_algorithm"))
+- Find a function which describes (an "optimal") relationship between the centrality measure and the distance to the bounding box #footnote(link("https://en.wikipedia.org/wiki/Gift_wrapping_algorithm")).
 - *piece-wise* linear function:
-  - $f(x) = m * x + t$
+  - $f(x) = m x + t$
   - $g(x) = c$
   - intersection point $c_0$ between the $f(x)$ and $g(x)$
 
 // --------------------------------------------------------------------------------------------------------------------
 #pagebreak()
-#heading(outlined: false)[Mibitof]
-// only show the relationship with the result of the ILP
+#heading(outlined: false)[Merfish]
 #figure(
-  caption: [Mibitof Closeness Function Fitting Result],
-  image("./figures/mibitof/quantification/closeness_fitted.svg", height: 75%),
+  caption: [Piece-wise linear function fitting example],
+  image("./figures/merfish/quantification/closeness_fitted.svg", height: 80%),
 )
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -201,9 +216,10 @@ However, when using node centrality measures to quantify node importance in such
 
 - If the assumption holds that $c_0$ describes the intersection between effected and non-effected centrality measures
   - all points of $g(x)$ are non-effected centrality measures meaning that the intersection point should be as close to the border as possible for any given centrality measure to be independent of the boundary
-  - limit the corresponding nodes to a sub-set which we can "trust" for further implications
-- Depending on the stepness $m$ of the linear function $f(x)$
-  - corresponding corrections could be applied to the centrality measure with probability in relation to the stepness $m$
+  - limit the corresponding nodes to a sub-set which we can "trust" for further implications back to the tissue section
+- Depending on the slope $m$ of the linear function $f(x)$
+  - corresponding corrections could be applied to the centrality measure using $m$
+  - can $m$ describe a probability of "trust" that a given centrality measure is "close" enough for implications for the tissue section?
 
 // --------------------------------------------------------------------------------------------------------------------
 #pagebreak()
@@ -238,12 +254,11 @@ However, when using node centrality measures to quantify node importance in such
 // --------------------------------------------------------------------------------------------------------------------
 #pagebreak()
 = Future Work
-// - is there a certain property associated with centrality measurement algorithms that cause the results to be either dependent or independent of the graph's boundaries? (i.e. page rank or betweeness)
 
-- Can this approach be used to quantify results extracted from implication made by centrality measures?
-  - Is a the linear part ($f(x)$) always a linear function or could it even be logarithmic? Maybe certain centrality measures should use other different function to fit / optimize for depending on their importance indicators.
-- Are there certain properties associated with algorithms (i.e. closeness, betweeness, page rank, etc.) that make them more or less dependent or even independent of the boundary?
+- Can this approach be used to quantify results extracted from implications made by centrality measures?
+- Are there certain properties associated with algorithms (i.e. closeness, betweenness, page rank, etc.) that make them more or less dependent or even independent of the boundary?
 - And the other way around: Are there certain properties on graphs that indicate better use for particular algorithms?
+- Is a the linear part $f(x)$ always a linear function or could it even be logarithmic? Maybe certain centrality measures should use other different function to optimize for depending on their importance indicators.
 
 
 // --------------------------------------------------------------------------------------------------------------------
@@ -290,7 +305,7 @@ The following slides are used for specific questions if details are necessary, b
   $ A' = d A + (1 - d) vec(1/n, ..., 1/n, delim: "[") 1^T $
 
 #pagebreak()
-=== Betweeness centrality
+=== Betweenness centrality
 
 #box(
  fill: luma(240),
@@ -300,7 +315,7 @@ The following slides are used for specific questions if details are necessary, b
   A node is important if it is on the *shortest path* *between* many pairs of *other nodes*.
 ]
 
-- Non-Normalized *Betweeness Centrality*:
+- Non-Normalized *Betweenness Centrality*:
   - $sigma_(s,t)$: Number of shortest paths from $s$ to $t$
   - $sigma_(s,t)(u)$: Number of shortest paths from $s$ to $t$ that pass through $u$
 $ B(u) = sum_(s,t in V without {u}) sigma_(s,t)(u) * (sigma_(s,t))^(-1) $
@@ -318,4 +333,4 @@ $ B(u) = sum_(s,t in V without {u}) sigma_(s,t)(u) * (sigma_(s,t))^(-1) $
 - #link("https://en.wikipedia.org/wiki/Gift_wrapping_algorithm")[Gift wrapping algorithm - Wikipedia]
 - #link("https://en.wikipedia.org/wiki/PageRank")[PageRank algorithm - Wikipedia]
 - #link("https://en.wikipedia.org/wiki/Random_walk")[Random Walk - Wikipedia]
-- #link("https://doi.org/10.1080/0022250X.2001.9990249")[Fast Betweeness Centrality Algorithm]
+- #link("https://doi.org/10.1080/0022250X.2001.9990249")[Fast Betweenness Centrality Algorithm]
