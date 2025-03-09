@@ -65,20 +65,18 @@ def convex_hull(pos):
 
 
 class Graph:
-    def plot(G, pos, edges, measures, name, path, **kwargs):
+    def plot(G, pos, edges, measures, name, path):
         fig, ax = plt.subplots()
         x = pos[:, 0]
         y = pos[:, 1]
         c = np.fromiter(measures.values(), dtype=float)
-        # TODO: get optional hull to draw from optional **kwargs argument
-        # ch = LineCollection([convex_hull], colors=['g'], linewidths=0.5)
-        # ax.add_collection(ch)
+        # convex hull -> Bounding-Box
+        ch = LineCollection([convex_hull(pos)], colors=['r'], linewidths=1)
+        ax.add_collection(ch)
         for edge in edges:
             ax.add_collection(edge)
         sc = ax.scatter(x, y, s=1, cmap=plt.cm.plasma, c=c) # map closeness values as color mapping on the verticies
-        # TODO: draw bounding box?
-        # ax.add_patch(patches.Rectangle((min_x, min_y), max_x - min_x, max_y - min_y, linewidth=0.2, edgecolor='r', facecolor="none"))
-        fig.title(name)
+        ax.set_title(name)
         fig.colorbar(sc, ax=ax)
         fig.savefig(path, format='svg')
 
@@ -120,6 +118,26 @@ class Quantification:
         quantification.sort(key=lambda entry: entry[0])
         return np.array(quantification)
 
+    def opt_data(pos, metric, b_opt):
+        keys = iter(metric.keys())
+        m = normalize_dict(metric)
+        boundary_effected = {}
+        hull = convex_hull(pos)
+
+        for point in pos:
+            min_distance = math.inf
+            key = next(keys)
+            for edge in hull:
+                distance = Vector.vec_len(point, edge)
+                if distance < min_distance:
+                    min_distance = distance
+            if min_distance <= b_opt:
+                boundary_effected[key] = 1
+            else:
+                boundary_effected[key] = 0
+
+        # sort by distance
+        return boundary_effected
 
     def plot(data, d_curve, C_curve, metric_name, path):
         fig, ax = plt.subplots()
@@ -127,5 +145,6 @@ class Quantification:
         ax.set_xlabel('Distance to Bounding-Box')
         ax.set_ylabel('Centrality')
         ax.scatter(data[:, 0], data[:, 1], color='b', s=0.2)
-        ax.plot(d_curve, C_curve, color='r', linewidth=1)
+        if d_curve is not None and C_curve is not None:
+            ax.plot(d_curve, C_curve, color='r', linewidth=1)
         fig.savefig(path, format='svg')
