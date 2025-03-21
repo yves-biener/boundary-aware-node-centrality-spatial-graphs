@@ -8,23 +8,40 @@ import matplotlib.colors as mcolors
 from matplotlib.collections import LineCollection
 
 class Vector:
+    """
+    Small Vector class used for calculations of distances
+    """
     def cross_z(a, b):
         return a[0] * b[1] - a[1] * b[0]
 
     def vec(start, end):
+        """
+        Create a new vector from `start` to `end`
+        @param start [Array-2d]
+        @param end [Array-2d]
+        @return [Array-2d]
+        """
         return [end[0]-start[0],end[1]-start[1]]
 
     def eql(point, other):
+        """
+        Check if `point` is equivalent to `other`.
+        """
         if point is None or other is None:
             return False
         return point[0] == other[0] and point[1] == other[1]
 
-    def vec_len(start, end):
-        vector = Vector.vec(start, end)
+    def vec_len(vector):
+        """
+        Calculate the length of a `vector`
+        """
         return math.sqrt(vector[0]**2 + vector[1]**2)
 
 
 def edges(adata):
+    """
+    Create an array of `LineCollection`'s which describe the edges of the spatial graph inside of `adata`.
+    """
     spatial = adata.obsm['spatial']
     spatial_connectivities = adata.obsp['spatial_connectivities']
     x = spatial[:, 0]
@@ -39,6 +56,11 @@ def edges(adata):
 
 
 def convex_hull(pos):
+    """
+    Calculate the convex hull using gift wrapping.
+    @param pos [Array-2d]
+    @return [Array-2d] ordered point array of hull points
+    """
     # gift wrapping algorithm
     x = pos[:, 0]
     y = pos[:, 1]
@@ -65,7 +87,19 @@ def convex_hull(pos):
 
 
 class Graph:
+    """
+    Graph class containing functions for plotting
+    """
     def plot(G, pos, edges, measures, name, path):
+        """
+        Plot a given graph.
+        @param G [Graph] networkx Graph
+        @param pos [Array-2d] position values of points
+        @param edges [Array] LineCollection's that should be used to render the edges. @see edges(pos)
+        @param measures [Dict] Result of a centrality calculation of networkx on graph G that should be visualized
+        @param name [String] Name of the measurement used, which will be integrated into the generated plot
+        @param path [String] Path to store the generated plot as svg file
+        """
         fig, ax = plt.subplots()
         x = pos[:, 0]
         y = pos[:, 1]
@@ -100,6 +134,12 @@ def normalize_dict(d):
 
 class Quantification:
     def data(pos, metric):
+        """
+        Create distance to metric relationship.
+        @param pos [Array-2d] Positions of points
+        @param metric [Dict] Result of a centrality calculation of networkx on graph G
+        @return [Array-2d] relationship ordered (acending) by distance
+        """
         keys = iter(metric.keys())
         m = normalize_dict(metric)
         quantification = []
@@ -109,7 +149,8 @@ class Quantification:
             min_distance = math.inf
             key = next(keys)
             for edge in hull:
-                distance = Vector.vec_len(point, edge)
+                vector = Vector.vec(point, edge)
+                distance = Vector.vec_len(vector)
                 if distance < min_distance:
                     min_distance = distance
             quantification.append([min_distance, m[key]])
@@ -119,6 +160,13 @@ class Quantification:
         return np.array(quantification)
 
     def opt_data(pos, metric, b_opt):
+        """
+        Optimal data relationship. Describe Points which are effected by the boundary.
+        @param pos [Array-2d] Positions of points
+        @param metric [Dict] Result of a centrality calculation of networkx on graph G
+        @param b_opt [int] Cross point distance.
+        @return [Dict] `metric` like dict (same keys) where True determines a node that is uneffected by the boundary, otherwise False.
+        """
         keys = iter(metric.keys())
         m = normalize_dict(metric)
         boundary_effected = {}
@@ -128,18 +176,27 @@ class Quantification:
             min_distance = math.inf
             key = next(keys)
             for edge in hull:
-                distance = Vector.vec_len(point, edge)
+                vector = Vector.vec(point, edge)
+                distance = Vector.vec_len(vector)
                 if distance < min_distance:
                     min_distance = distance
             if min_distance <= b_opt:
-                boundary_effected[key] = 1
+                boundary_effected[key] = True
             else:
-                boundary_effected[key] = 0
+                boundary_effected[key] = False
 
         # sort by distance
         return boundary_effected
 
     def plot(data, d_curve, C_curve, metric_name, path):
+        """
+        Plot relationship data.
+        @param data [Array-2d] see `data(pos, metric)`
+        @param d_curve linear function of the left side of the intersection point
+        @param C_curve constant function of the right side of the intersection point
+        @param metric_name [String] Name of the metric to be used as a title for the plot
+        @param path [String] Path to store the generated plot as svg file
+        """
         fig, ax = plt.subplots()
         ax.set_title(metric_name)
         ax.set_xlabel('Distance to Bounding-Box')
