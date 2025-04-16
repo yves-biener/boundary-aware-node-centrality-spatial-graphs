@@ -13,7 +13,7 @@
   ),
  ),
  abstract: [
-  #lorem(80)
+  Centrality measures are used to determine the importance of nodes in a given graph. Usually they are applied to spatial graphs which are by nature a limited section of the actual tissues that are analysed. However the calculation of the importance values is impacted by the boundaries of the spatial graph itself leading to potentially incorrect values, or values which cannot be used to derive meaningful results back to the tissue section. This project attempts to create a model to identify centrality values which are impacted by the boundary and a potential correction of these values using that model.
  ],
  enable_bibliography: true,
  enable_figure_outline: false,
@@ -21,27 +21,62 @@
  doc
 )
 
+// TODO add missing logo for the Bionet Lehrstuhl
 = Motivation
-#lorem(80)
-// TODO: explain the following aspects:
-// - why measurements at the boundaries are usually wrong when compared to the real world
-// - improve by adjusting the computated values through the other existing ones
-// - working with non-grid datasets (i.e. mibitof and merfish) BIB: both could be cited too
+Node centrality measures such as closeness, betweenness, PageRank centrality are standard tools to quantify the importance of individual nodes in a network. Consequently, they are also widely used to analyze spatial graphs derived from tissue sections (e.g., spatial k-nearest neighbor graphs computed based on spatial omics data). However, when using node centrality measures to quantify node importance in such spatial graphs, they tend to prioritize nodes in the center of the graph and de-prioritize nodes that are close to the boundary of the tissue section. This is a problem, because the boundary is very often an arbitrary artifact of the tissue sample collection protocol (e.g, a small skin section was cut out of an arbitrary section of a larger skin area of interest) and should hence not affect node importance quantification.
+
+// TODO mention the two datasets that were used for the creation of the models!
+// BIB: add corresponding entries for each dataset
 
 = Centrality measurements
-
 // TODO: what are centrality measurements and how are they calculated (take the we are also plann on improving on)
 // - what is the reason then for nodes at the border to become less (or more) potent
+A centrality measurement determines a value describing a node's importance in a (di-)graph. This importance may be described by certain properties, like the edge count, shortes paths to other nodes, distance to closest articulation point, etc. Most commonly used is the _closeness centrality_, which describes the average distance to all other nodes of the graph. This can be formalized as followed:
 
-== Closeness centrality
+$
+C(u) = (n - 1) * (sum_(v in V without {u}) d(v,u))^(-1)\
+= ("arithmetic-mean"_(v in V without {v}) d(v,u))^(-1)
+$
 
-== Pagerank centrality
-// TODO: Pagerank does not seem to be too effected by the boundary
+This property is good because it creates a relationship between every node of the graph making each node comparable to every other node in the graph. However this approach favors the nodes usually located in the center of a spatial graph because these nodes are the most likely ones to have the shortest distances to every other node in the graph. On the other hand nodes close to the boundary are further away from other nodes of the graph earning them a lower score contributing to this imbalance created by the boundary.
 
-// TODO:
-// BIB: google paper for the pagerank algorithm?
+#figure(
+  caption: [Closeness centrality for Merfish dataset],
+  image("./figures/merfish/spatial_graph.svg")
+) <closeness-merfish>
 
-= Correction for boundary
+@closeness-merfish shows that closeness centrality measure favors the nodes in the center of the spatial graph as nodes in the center of the spatial graph have a higher score than nodes close to the border of the graph.
+
+// BIB: Brin, S., and Page, L. (1998). The Anatomy of a Large-Scale Hypertextual Web Search Engine. Comput. Netw. 30, 107–117. https://doi.org/10.1016/S0169-7552(98)00110-X.
+Another widely used centrality measure is the PageRank algorithm. Originally the algorithm ranked web pages by providing each page a score based on the idea that more important pages are likely to receive more links form other pages. This approach can also be applied to any graph, such that the importance of each node is based on the number and quality of connections to that node.
+
+= Approach
+// BIB: citation for gift wrapping algorithm
+Using the relationship between a given centrality measure (in the case of this project: _closeness_ and _pagerank_) and the distance to the bounding box a model can be derived describing the dependency of each node's centrality value to the boundary. The bounding box is determined through a simple gift wrapping algorithm (CITATION).
+
+The model itself is based on a _piece-wise_ linear function $h(x) =$ with 
+  + $h(b_0) = c$ // add this to the piece-wise linear function description
+  + the slope $f(x) = m x + t$
+  + the constant $g(x) = c$
+to which each point of the relationship is fitted. For the fitting an elipse based approach is used to ensure that the fitted function describes values as close to all nodes corresponding centrality values as possible.
+
+#figure(
+  caption: [Fitted Model for Mibitof using closeness centrality],
+  image("./figures/mibitof/quantification/closeness_fitted.svg")
+) <fitted-model>
+
+Each point of the scatter plot (blue in @fitted-model) describes a node's centrality value, while the red function plot in @fitted-model describes the piece-wise linear function $h(x)$ for this dataset and centrality measure.
+
+$b_0$ describes the intersection between the linear part ($f(x)$) and the constant part ($g(x)$). The model assumes that every node having a shorter distance to the boundary than the intersection has centrality values associated which are effected by the boundary. On the other hand nodes that have a greater distance to the bounding box than $b_0$ are not effected by the boundary and can be assumed to be trust-worthy.
+
+#figure(
+  caption: [Every yellow node is affected by the boundary, while nodes highlighted blue are not affected by the boundary.],
+  image("./figures/mibitof/spatial_graph_c0.svg")
+)
+
+This would mean that the model can be used to determine if a given centrality algorithm is more or less prone to being affected by the boundary of the spatial graph compared to other algorithms. Additionally the slope of the linear part $f(x)$ can be used to describe the impact of the boundary on the centarity measure itself. A steeper slope would indicate that the boundary has a bigger impact on the centralities than a shallower slope.
+
+Assuming that $b_0$ represents the intersection between affected and unaffected centrality measures, algorithms which place this intersection closer to the boundary describe fewer points affected by the boundary. Depending on the slope $m$ of the linear function $f(x)$, it may be possible to apply corrections to centrality measures or interpret $m$ as a probability indicating how "trustworthy" a given centrality value is for drawing conclusions about the analyses.
 
 // TODO: explain what we did step by step and how we try to improve the corresponding calculated centrality measurements
 // - Boundary box (gift wrapping algorithm)
@@ -53,16 +88,56 @@
 // -> new centrality values
 // -> detection which nodes are effected by the boundary
 
-= Usecases
+= Correction for boundary
 
-// TODO: What can this approach be used for?
-// - Detect how much a metric may be effected by the boundary of a spatial graph
-// - Detect the nodes which are effected by the boundary (maybe even with a given threshhold)
+// TODO describe how to apply the correction to the affected part
+// generate an example which corrects the values and add that here too!
 
-= Conclusion
-
+= Future Work
 // NOTE: this should serve as a report for the master thesis based on this work
 // - what can also be done on top of the existing work?
 //   - improvement of algorithms (i.e. runtime improvements - *very unlikely*)
 //   - improvement of metric algorithms to use (i.e. which are more or less effected by the boundary)
 //   - quantification of metrics (i.e. can a metric be used to make educated guesses about the corresponding cells, etc.)
+The shown approach may provide a general way to quantify centrality measures for any given (spatial) graph and may even go further by providing a way to correct the centrality values according to the model to become unaffected by the boundary. However this still requires verification against more datasets and known results. Can the results be quantified using this approach? Where do implications drawn from centrality measures - which are deemed not "trustworthy" by the model - still hold? Can implications from other publications be validated with this model?
+
+As the relationship on which the model is build on top, is relating an algorithm with a given graph (and its boundary), are there any algorithms which are unaffected (or more likely to be unaffected) by the boundary? Are there certain properties that can be derived from such algorithms? Or is this maybe even a property of the graph that applies to specific centrality measures? For example the *Appendix* contains the calculated models for the PageRank algorithm for both the merfish and mibitof dataset with various dampening factors. All of them have no linear part of the peace-wise function and indicate that they are completely unaffected by the boundary.
+
+#colbreak()
+= Appendix <appendix>
+// TODO describe which factor is used for each pagerank algorithm run
+This section contains all the generated graphs and images from the mibitof and merfish datasets used for the model generation with their corresponding values.
+
+#figure(
+ grid(
+  columns: (1fr, 1fr, 1fr),
+  image("./figures/mibitof/quantification/pagerank_alpha0.0_fitted.svg"),
+  image("./figures/mibitof/quantification/pagerank_alpha0.1_fitted.svg"),
+  image("./figures/mibitof/quantification/pagerank_alpha0.2_fitted.svg"),
+  image("./figures/mibitof/quantification/pagerank_alpha0.3_fitted.svg"),
+  image("./figures/mibitof/quantification/pagerank_alpha0.4_fitted.svg"),
+  image("./figures/mibitof/quantification/pagerank_alpha0.5_fitted.svg"),
+  image("./figures/mibitof/quantification/pagerank_alpha0.6_fitted.svg"),
+  image("./figures/mibitof/quantification/pagerank_alpha0.7_fitted.svg"),
+  image("./figures/mibitof/quantification/pagerank_alpha0.8_fitted.svg"),
+  image("./figures/mibitof/quantification/pagerank_alpha0.9_fitted.svg"),
+ ),
+ caption: [Pagerank algorithm analyses of mibitof dataset],
+)
+
+#figure(
+ grid(
+  columns: (1fr, 1fr, 1fr),
+  image("./figures/merfish/quantification/pagerank_alpha0.0_fitted.svg"),
+  image("./figures/merfish/quantification/pagerank_alpha0.1_fitted.svg"),
+  image("./figures/merfish/quantification/pagerank_alpha0.2_fitted.svg"),
+  image("./figures/merfish/quantification/pagerank_alpha0.3_fitted.svg"),
+  image("./figures/merfish/quantification/pagerank_alpha0.4_fitted.svg"),
+  image("./figures/merfish/quantification/pagerank_alpha0.5_fitted.svg"),
+  image("./figures/merfish/quantification/pagerank_alpha0.6_fitted.svg"),
+  image("./figures/merfish/quantification/pagerank_alpha0.7_fitted.svg"),
+  image("./figures/merfish/quantification/pagerank_alpha0.8_fitted.svg"),
+  image("./figures/merfish/quantification/pagerank_alpha0.9_fitted.svg"),
+ ),
+ caption: [Pagerank algorithm analyses of merfish dataset],
+)

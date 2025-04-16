@@ -20,7 +20,7 @@
     set text(12pt, weight: "bold")
    }
   }
-  #block(smallcaps(it.body))
+  #smallcaps(it.body)
  ]
  // links and references
  show link: set text(blue)
@@ -82,7 +82,7 @@
   } else {
    // show FAU logo on first page
    align(
-    left,
+    right,
     image("fau.png", width: 30%),
    )
   }
