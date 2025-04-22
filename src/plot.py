@@ -129,7 +129,7 @@ class Graph:
 
 def normalize_dict(d):
     max = np.max(list(d.values()))
-    return [(v / max) for k, v in d.items()]
+    return {k: (v / max) for k, v in d.items()}
 
 
 class Quantification:
@@ -140,9 +140,8 @@ class Quantification:
         @param metric [Dict] Result of a centrality calculation of networkx on graph G
         @return [Array-2d] relationship ordered (acending) by distance
         """
-        keys = iter(metric.keys())
-        m = normalize_dict(metric)
         quantification = []
+        keys = iter(metric.keys())
         hull = convex_hull(pos)
 
         for point in pos:
@@ -153,7 +152,7 @@ class Quantification:
                 distance = Vector.vec_len(vector)
                 if distance < min_distance:
                     min_distance = distance
-            quantification.append([min_distance, m[key]])
+            quantification.append([min_distance, metric[key]])
 
         # sort by distance
         quantification.sort(key=lambda entry: entry[0])
@@ -168,7 +167,6 @@ class Quantification:
         @return [Dict] `metric` like dict (same keys) where True determines a node that is uneffected by the boundary, otherwise False.
         """
         keys = iter(metric.keys())
-        m = normalize_dict(metric)
         boundary_effected = {}
         hull = convex_hull(pos)
 
