@@ -61,8 +61,8 @@ The model itself is based on a _piece-wise_ linear function $h(x) =$ with
 to which each point of the relationship is fitted. For the fitting an elipse based approach is used to ensure that the fitted function describes values as close to all nodes corresponding centrality values as possible.
 
 #figure(
-  caption: [Fitted Model for Mibitof using closeness centrality],
-  image("./figures/mibitof/quantification/closeness_fitted.svg")
+  caption: [Fitted Model for Merfish using closeness centrality],
+  image("./figures/merfish/quantification/closeness_fitted.svg")
 ) <fitted-model>
 
 Each point of the scatter plot (blue in @fitted-model) describes a node's centrality value, while the red function plot in @fitted-model describes the piece-wise linear function $h(x)$ for this dataset and centrality measure.
@@ -71,7 +71,7 @@ $b_0$ describes the intersection between the linear part ($f(x)$) and the consta
 
 #figure(
   caption: [Every yellow node is affected by the boundary, while nodes highlighted blue are not affected by the boundary.],
-  image("./figures/mibitof/spatial_graph_c0.svg")
+  image("./figures/merfish/spatial_graph_c0.svg")
 )
 
 This would mean that the model can be used to determine if a given centrality algorithm is more or less prone to being affected by the boundary of the spatial graph compared to other algorithms. Additionally the slope of the linear part $f(x)$ can be used to describe the impact of the boundary on the centarity measure itself. A steeper slope would indicate that the boundary has a bigger impact on the centralities than a shallower slope.
@@ -88,10 +88,21 @@ Assuming that $b_0$ represents the intersection between affected and unaffected 
 // -> new centrality values
 // -> detection which nodes are effected by the boundary
 
-= Correction for boundary
+= Model-based correction
+For the correction each point which is assumed to be affected by the boundary will be corrected. For each point determine the delta of its associated model value (i.e. the point of the slope for the distance to the boundary of that point) to the constant of the model. Effectively for a point with distance $x$ calculate $delta = m * (b_0 - x)$ and add that $delta$ to the associated point's centrality measure. For the shown Merfish dataset this results in the following correction:
 
-// TODO describe how to apply the correction to the affected part
-// generate an example which corrects the values and add that here too!
+#figure(
+ caption: [Left: Original relationship and spatial graph; Right: Applied correction based on model for the merfish dataset],
+ grid(
+  columns: (1fr, 1fr),
+  image("./figures/merfish/quantification/closeness.svg"),
+  image("./figures/merfish/quantification/closeness_corrected.svg"),
+  image("./figures/merfish/spatial_graph.svg"),
+  image("./figures/merfish/spatial_graph_corrected.svg"),
+ )
+)
+
+Because the correction is applied to every point that is on the left side of the intersection point $b_0$, there are now centrality values which are effectively bigger than any node was before. Due to the fact that the centrality values have been normalized before (hence the max value of the centrality is $1.0$) the corrected values go over $1.0$ and are not normalized to leave the centrality values of the points that are on the right hand side of $b_0$ remain unchanged.
 
 = Future Work
 // NOTE: this should serve as a report for the master thesis based on this work
@@ -110,7 +121,7 @@ This section contains all the generated graphs and images from the mibitof and m
 
 #figure(
  grid(
-  columns: (1fr, 1fr, 1fr),
+  columns: (1fr, 1fr),
   image("./figures/mibitof/quantification/pagerank_alpha0.0_fitted.svg"),
   image("./figures/mibitof/quantification/pagerank_alpha0.1_fitted.svg"),
   image("./figures/mibitof/quantification/pagerank_alpha0.2_fitted.svg"),
@@ -127,7 +138,7 @@ This section contains all the generated graphs and images from the mibitof and m
 
 #figure(
  grid(
-  columns: (1fr, 1fr, 1fr),
+  columns: (1fr, 1fr),
   image("./figures/merfish/quantification/pagerank_alpha0.0_fitted.svg"),
   image("./figures/merfish/quantification/pagerank_alpha0.1_fitted.svg"),
   image("./figures/merfish/quantification/pagerank_alpha0.2_fitted.svg"),
