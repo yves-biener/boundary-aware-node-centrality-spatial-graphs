@@ -49,42 +49,36 @@ Another widely used centrality measure is the PageRank @pagerank algorithm. Orig
 = Approach
 Using the relationship between a given centrality measure (in the case of this project: _closeness_ and _pagerank_) and the distance to the bounding box a model can be derived describing the dependency of each node's centrality value to the boundary. The bounding box is determined through a simple gift wrapping algorithm @giftwrapping.
 
-The model itself is based on a _piece-wise_ linear function $h(x) =$ with 
-  + $h(b_0) = c$ // add this to the piece-wise linear function description
-  + the slope $f(x) = m x + t$
-  + the constant $g(x) = c$
-to which each point of the relationship is fitted. For the fitting an elipse based approach is used to ensure that the fitted function describes values as close to all nodes corresponding centrality values as possible.
+The model itself is based on $h(x)$ a _piece-wise_ linear function defined as follows:
+
+$
+h(x) = op(brace.l)^(m * x + c_0 "if" 0 < x < b)_(m * b + c_0 "if" x >= b)
+$ <model>
+
+@model is fitted to the relationship using an ellipse based approach to ensure that the fitted function describes the centrality values and their corresponding distance to the bounding box as close as possible for all points of the relationship. The fitting calculates the optimal values for $m$, $b$ and $c_0$. It is assumed that each mentioned value of $h(x)$ describes its optimal value for the associated relationship. For the merfish @merfish dataset the optimum has been calculated and drawn into the relationship:
 
 #figure(
   image("./figures/merfish/quantification/closeness_fitted.svg"),
   caption: [Fitted Model for merfish using closeness centrality],
 ) <fitted-model>
 
-Each point of the scatter plot (blue in @fitted-model) describes a node's centrality value, while the red function plot in @fitted-model describes the piece-wise linear function $h(x)$ for this dataset and centrality measure.
+Each blue point of the scatter plot describes a node's centrality value, while the red function plot in @fitted-model describes the piece-wise linear function $h(x)$ for this dataset and centrality measure.
 
-$b_0$ describes the intersection between the linear part ($f(x)$) and the constant part ($g(x)$). The model assumes that every node having a shorter distance to the boundary than the intersection has centrality values associated which are effected by the boundary. On the other hand nodes that have a greater distance to the bounding box than $b_0$ are not effected by the boundary and can be assumed to be trust-worthy.
+$b$ of @model describes the intersection between the linear part and the constant part. The model assumes that every node having a shorter distance to the boundary than the intersection has centrality values associated which are effected by the boundary. On the other hand nodes that have a greater distance to the bounding box than $b$ are not effected by the boundary and can be assumed to be trust-worthy.
 
 #figure(
   image("./figures/merfish/spatial_graph_c0.svg"),
-  caption: [Every yellow node is affected by the boundary, while nodes highlighted blue are not affected by the boundary.],
+  caption: [Every yellow node is effected by the boundary, while nodes highlighted blue are not effected by the boundary.],
 )
 
-This would mean that the model can be used to determine if a given centrality algorithm is more or less prone to being affected by the boundary of the spatial graph compared to other algorithms. Additionally the slope of the linear part $f(x)$ can be used to describe the impact of the boundary on the centarity measure itself. A steeper slope would indicate that the boundary has a bigger impact on the centralities than a shallower slope.
+This would mean that the model can be used to determine if a given centrality algorithm is more or less prone to being effected by the boundary of the spatial graph compared to other algorithms. Additionally the slope of the linear part $f(x)$ can be used to describe the impact of the boundary on the centarity measure itself. A steeper slope would indicate that the boundary has a bigger impact on the centralities than a shallower slope.
 
-Assuming that $b_0$ represents the intersection between affected and unaffected centrality measures, algorithms which place this intersection closer to the boundary describe fewer points affected by the boundary. Depending on the slope $m$ of the linear function $f(x)$, it may be possible to apply corrections to centrality measures or interpret $m$ as a probability indicating how "trustworthy" a given centrality value is for drawing conclusions about the analyses.
-
-// TODO: explain what we did step by step and how we try to improve the corresponding calculated centrality measurements
-// - Boundary box (gift wrapping algorithm)
-// - Centrality calculation
-// - graph creation with the relation for distance to bounding-box <-> centrality of each node
-// - function fitting as a (I)LP
-//   - slope, breaking point, constant (as variables)
-// - resulting correction to be applied to the centrality values of the corresponding nodes from the relationship
-// -> new centrality values
-// -> detection which nodes are effected by the boundary
+Assuming that $b$ represents the intersection between effected and uneffected centrality measures, algorithms which place this intersection closer to the boundary describe fewer points effected by the boundary. Depending on the slope $m$ of the linear function $f(x)$, it may be possible to apply corrections to centrality measures or interpret $m$ as a probability indicating how "trustworthy" a given centrality value is for drawing conclusions about the analyses.
 
 = Model-based correction
-For the correction each point which is assumed to be affected by the boundary will be corrected. For each point determine the delta of its associated model value (i.e. the point of the slope for the distance to the boundary of that point) to the constant of the model. Effectively for a point with distance $x$ calculate $delta = m * (b_0 - x)$ and add that $delta$ to the associated point's centrality measure. For the shown merfish dataset @merfish this results in the following correction:
+For the correction each point which is assumed to be effected by the boundary will be corrected. For each point determine the delta of its associated model value (i.e. the point of the slope for the distance to the boundary of that point) to the constant of the model (see @model).
+
+For a point with distance of $x$ to the bounding box, calculate $delta = m * (b - x)$ and add that $delta$ to the associated point's centrality measure. For the shown merfish @merfish dataset this results in the following correction:
 
 #figure(
  grid(
@@ -97,12 +91,12 @@ For the correction each point which is assumed to be affected by the boundary wi
  caption: [Left: Original relationship and spatial graph; Right: Applied correction based on model for the merfish dataset],
 )
 
-Because the correction is applied to every point that is on the left side of the intersection point $b_0$, there are now centrality values which are effectively bigger than any node was before. Due to the fact that the centrality values have been normalized before (hence the max values of the centrality are between $0.0$ and $1.0$) the corrected values go over $1.0$ and are not normalized to leave the centrality values of the points that are on the right hand side of $b_0$ remain unchanged (from the original normalized centrality).
+Because the correction is applied to every point that is on the left side of the intersection point $b$, there are now centrality values which are effectively bigger than any node was before. Due to the fact that the centrality values have been normalized before (hence the max values of the centrality are between $0.0$ and $1.0$) the corrected values go over $1.0$ and are not normalized to leave the centrality values of the points that are on the right hand side of $b$ remain unchanged (from the original normalized centrality).
 
 = Future Work
 The shown approach may provide a general way to quantify centrality measures for any given (spatial) graph and may even go further by providing a way to correct the centrality values according to the model. However this still requires verification against more datasets and known results. Can the results be quantified using this approach? Where do implications drawn from centrality measures - which are deemed not "trustworthy" by the model - still hold? Can implications from other publications be validated with this model?
 
-As the relationship on which the model is build on top, is relating an algorithm with a given graph (and its boundary), are there any algorithms which are unaffected (or more likely to be unaffected) by the boundary? Are there certain properties that can be derived from such algorithms? Or is this maybe even a property of the graph that applies to specific centrality measures? For example the *Appendix* section contains the calculated models for the PageRank @pagerank centrality measure for both the merfish @merfish and mibitof @mibitof datasets with various dampening factors. All of them have no linear part of the peace-wise function and indicate that they are completely unaffected by the boundary.
+As the relationship on which the model is build on top, is relating an algorithm with a given graph (and its boundary), are there any algorithms which are uneffected (or more likely to be uneffected) by the boundary? Are there certain properties that can be derived from such algorithms? Or is this maybe even a property of the graph that applies to specific centrality measures? For example the *Appendix* section contains the calculated models for the PageRank @pagerank centrality measure for both the merfish @merfish and mibitof @mibitof datasets with various dampening factors. All of them have no linear part of the peace-wise function and indicate that they are completely uneffected by the boundary.
 
 #colbreak()
 = Appendix <appendix>
