@@ -1,20 +1,66 @@
-contract:
+mibitof:
   type: article
-  title: A New Approach to the Minimum Cut Problem
+  title: Multiplexed Single-cell Metabolic Profiles Organize the Spectrum of Cytotoxic Human T Cells
   author:
-    - David R. Krager
-    - Clifford Stein
-  date: 1996-12-23
-  url: http://www.columbia.edu/~cs2035/courses/ieor6614.S09/Contraction.pdf
+    - Felix J. Hartmann
+    - Dunja Mrdjen
+    - Erin McCaffrey
+    - David R. Glass
+    - Noah F. Greenwald
+    - Anusha Bharadwaj
+    - Zumana Khair
+    - Alex Baranski
+    - Reema Baskar
+    - Michael Angelo
+    - Sean C. Bendall
+  year: 2020
+  doi: 10.1101/2020.01.17.909796
+  publisher: Cold Spring Harbor Laboratory
+  url: https://www.biorxiv.org/content/early/2020/01/17/2020.01.17.909796
+  eprint: https://www.biorxiv.org/content/early/2020/01/17/2020.01.17.909796.full.pdf
+  journal: bioRxiv
 
-aquila:
+merfish:
   type: article
-  title: "Aquila: a spatial omics database and anlysis platform"
+  title: Molecular, spatial, and functional single-cell profiling of the hypothalamic preoptic region
   author:
-    - Yimin Zheng
-    - Yitian Chen
-    - Xianting Ding
-    - Koon Ho Wong
-    - Edwin Cheung
-  date: 2022-10-16
-  url: https://academic.oup.com/nar/article/51/D1/D827/6761736
+    - Jeffrey R. Moffitt
+    - Dhananjay Bambah-Mukku
+    - Stephen W. Eichhorn
+    - Eric Vaughn
+    - Karthik Shekhar
+    - Julio D. Perez
+    - Nimrod D. Rubinstein
+    - Junjie Hao
+    - Aviv Regev
+    - Catherine Dulac
+    - Xiaowei Zhuang
+  year: 2018
+  doi: 10.1126/science.aau5324
+  url: https://www.science.org/doi/abs/10.1126/science.aau5324
+  eprint: https://www.science.org/doi/pdf/10.1126/science.aau5324
+  volume: 362
+  number: 6416
+  pages: eaau5324
+  journal: Science
+
+pagerank:
+  type: article
+  title: The Anatomy of a Large-Scale Hypertextual Web Search Engine
+  author:
+    - Brin S.
+    - Page L.
+  year: 1998
+  doi: 10.1016/S0169-7552(98)00110-X
+  url: https://doi.org/10.1016/S0169-7552(98)00110-X
+  pages: 107-117
+
+giftwrapping:
+  type: article
+  title: On the identification of the convex hull of a finite set of points in the plane
+  author: Jarvis R. A.
+  year: 1973
+  doi: 10.1016/0020-0190(73)90020-3
+  url: https://doi.org/10.1016/0020-0190(73)90020-3
+  pages: 18-21
+  journal: Information Processing Letters
